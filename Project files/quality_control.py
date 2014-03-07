@@ -115,13 +115,13 @@ if __name__ == "__main__":
   # run the fastqc command on all raw files in directory
   qc_ini = make_dir(wd , 'fastqc_out/before_trimming/')
   #for i in range(len(raw_data_paths)):
-    #qc_dir = make_dir(qc_ini, new_name_list[i])
-    #run_fastqc(raw_data_paths[i], qc_dir)
+    qc_dir = make_dir(qc_ini, new_name_list[i])
+    run_fastqc(raw_data_paths[i], qc_dir)
 
   # trim all raw fastq files
   trimdir = make_dir(wd, 'trimmed_fastq/')
-  #for i in range(0, len(raw_data_paths), 2):
-    #run_Trimmomatic(raw_data_paths[i], raw_data_paths[i+1], wd+'/Trimmomatic-0.32/trimmomatic-0.32.jar',wd+'/Trimmomatic-0.32/adapters/TruSeq3-PE-2.fa', trimdir, new_name_list[i]+'.fastq', new_name_list[i+1]+'.fastq')
+  for i in range(0, len(raw_data_paths), 2):
+    run_Trimmomatic(raw_data_paths[i], raw_data_paths[i+1], wd+'/Trimmomatic-0.32/trimmomatic-0.32.jar',wd+'/Trimmomatic-0.32/adapters/TruSeq3-PE-2.fa', trimdir, new_name_list[i]+'.fastq', new_name_list[i+1]+'.fastq')
    
   # run fastqc on all trimmed files
   qc_trimmed = make_dir( wd, 'fastqc_out/after_trimming/')
