@@ -113,21 +113,28 @@ if __name__ == "__main__":
     install_Trimmomatic(wd)
         
   # run the fastqc command on all raw files in directory
-  qc_ini = make_dir(wd , 'raw_fastqc/')
-  for i in range(len(raw_data_paths)):
-    run_fastqc(raw_data_paths[i], qc_ini+new_name_list[i])
+  qc_ini = make_dir(wd , 'fastqc_out/before_trimming/')
+  #for i in range(len(raw_data_paths)):
+    #qc_dir = make_dir(qc_ini, new_name_list[i])
+    #run_fastqc(raw_data_paths[i], qc_dir)
 
   # trim all raw fastq files
-  trimdir = make_dir(wd, 'improved_quality_reads/')
-  for i in range(0, len(raw_data_paths), 2):
-    run_Trimmomatic(raw_data_paths[i], raw_data_paths[i+1], wd+'/Trimmomatic-0.32/trimmomatic-0.32.jar',wd+'/Trimmomatic-0.32/adapters/TruSeq3-PE-2.fa', trimdir, new_name_list[i], new_name_list[i+1])
+  trimdir = make_dir(wd, 'trimmed_fastq/')
+  #for i in range(0, len(raw_data_paths), 2):
+    #run_Trimmomatic(raw_data_paths[i], raw_data_paths[i+1], wd+'/Trimmomatic-0.32/trimmomatic-0.32.jar',wd+'/Trimmomatic-0.32/adapters/TruSeq3-PE-2.fa', trimdir, new_name_list[i]+'.fastq', new_name_list[i+1]+'.fastq')
    
   # run fastqc on all trimmed files
-  qc_trimmed = make_dir( wd, 'trimmed_fastqc/')
+  qc_trimmed = make_dir( wd, 'fastqc_out/after_trimming/')
   trimmed_reads_paths = list_fastq_files(trimdir)
+  trimmed_reads_filenames = []
+  for it in trimmed_reads_paths:
+    fil = it.split('/')[-1][:-6]
+    trimmed_reads_filenames.append(fil)
+    
   for i in range(len(trimmed_reads_paths)):
-    run_fastqc(trimmed_reads_paths[i], qc_trimmed+new_name_list)
+    qc_dir = make_dir(qc_trimmed, trimmed_reads_filenames[i])
+    run_fastqc(trimmed_reads_paths[i], qc_dir)
   
   '''
-  COMMANDLINE: python Quality_control.py /local/data/course/project/groups/mango/project/ new_filenames.txt /local/data/course/project/RNAseq/yeast/
+  COMMANDLINE: python Quality_control.py /local/data/course/project/groups/mango/project_final/ new_filenames.txt /local/data/course/project/groups/mango/project_final/raw_fastq
   '''
