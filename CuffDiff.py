@@ -39,7 +39,8 @@ def callCuffDiff(sPath):
             #Reference genome
             sCuffDiffCommanLine += ' -b' + sPath + 'ref_genome/genome.fa'
             #merged.gtf file  
-            sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffmerge/merged_asm/merged.gtf'
+            #sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffmerge/merged_asm/merged.gtf'
+            sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffcompare/cuffcmp.combined.gtf'
             #batch bam directory
             #Create list of bam files for batch
             sCuffDiffCommanLine += ' '
@@ -114,7 +115,9 @@ def checkRequiredFolders(sPath):
         bPermission = checkPermissions(sPath + 'ref_genome/genome.fa', ['R'])
         if(not bPermission):
             sErrorMessage += bPermission
-        bPermission = checkPermissions(sPath + 'txdout/cuffmerge/merged_asm/merged.gtf', ['R'])
+        #bPermission = checkPermissions(sPath + 'txdout/cuffmerge/merged_asm/merged.gtf', ['R'])
+        bPermission = checkPermissions(sPath + 'txdout/txdout/cuffcompare/cuffcmp.combined.gtf', ['R'])
+        
         if(not bPermission):
             sErrorMessage += bPermission
             
