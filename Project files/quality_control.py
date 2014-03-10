@@ -114,7 +114,7 @@ if __name__ == "__main__":
         
   # run the fastqc command on all raw files in directory
   qc_ini = make_dir(wd , 'fastqc_out/before_trimming/')
-  #for i in range(len(raw_data_paths)):
+  for i in range(len(raw_data_paths)):
     qc_dir = make_dir(qc_ini, new_name_list[i])
     run_fastqc(raw_data_paths[i], qc_dir)
 
