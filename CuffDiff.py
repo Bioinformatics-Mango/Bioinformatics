@@ -30,37 +30,72 @@ import numpy
 def callCuffDiff(sPath):
     ''' Calls the cuffdiff program, if not able to run the program it will give an error message
     '''
-    try:    
-        if(checkRequiredFolders(sPath)): #All required files and folders are ready, creating cuffdiff commandline
+    try:
+      if(checkRequiredFolders(sPath)): #All required files and folders are ready, creating cuffdiff commandline
+            exit
             sCuffDiffCommanLine = 'cuffdiff'
             #Output directory
             sCuffDiffCommanLine += ' -o ' + sPath + 'txdout/cuffdiff'
             #Reference genome
-            sCuffDiffCommanLine += '-b' + sPath + 'ref_genome/genome.fa'
-            #Labels
-            sCuffDiffCommanLine += ' -L' + 'batch,chemostat'
+            sCuffDiffCommanLine += ' -b' + sPath + 'ref_genome/genome.fa'
             #merged.gtf file  
-            sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/merged_asm/merged.gtf'
+            sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffmerge/merged_asm/merged.gtf'
             #batch bam directory
             #Create list of bam files for batch
             sCuffDiffCommanLine += ' '
-            regTophadOut = re.compile('.*_thout')
-            for folder in os.listdir(sPath+'txdout/batch'):
-                if(len(regTophadOut.findall(folder))>=1):
-                    sCuffDiffCommanLine += sPath+'txdout/batch'+'/'+folder+'/accepted_hits.bam,'
-            #remove trailing komma
-            sCuffDiffCommanLine = sCuffDiffCommanLine[:-1]
             
-            #Create list of bam files for chemostat
-            sCuffDiffCommanLine += ' '
-            regTophadOut = re.compile('.*_thout')
-            for folder in os.listdir(sPath+'txdout/chemostat'):
+            regTophadOut = re.compile('(.*)\d_thout')
+            dictLabels = {}
+            for folder in os.listdir(sPath+'txdout/tophat'):
                 if(len(regTophadOut.findall(folder))>=1):
-                    sCuffDiffCommanLine += sPath+'txdout/chemostat'+'/'+folder+'/accepted_hits.bam,'
-            #remove trailing komma
-            sCuffDiffCommanLine = sCuffDiffCommanLine[:-1]
+                    oLabelMatch = regTophadOut.match(folder)
+                    dictLabels[oLabelMatch.group(1)] = ''
+
+            #Labels
+            sCuffDiffCommanLine += ' -L '
+            for k,v in dictLabels.items(): #Happens twice
+                sCuffDiffCommanLine += k+','
+            #remove trailing komma - add space
+            sCuffDiffCommanLine = sCuffDiffCommanLine[:-1] + ' '
+                    
+            for k,v in dictLabels.items(): #Happens twice
+                regOutFile = re.compile('('+k+'.*)_thout')
+                for folder in os.listdir(sPath+'txdout/tophat/'):
+
+                    if(len(regOutFile.findall(folder))>=1):
+                        oFileMatch = regOutFile.match(folder)             
+                        oFileMatch = oFileMatch.group(1)
+                        sCuffDiffCommanLine += sPath + 'txdout/tophat/' + folder + '/' + 'accepted_hits_'+oFileMatch+'.bam,'
+                #remove trailing komma
+                sCuffDiffCommanLine = sCuffDiffCommanLine[:-1] + ' '                          
             
-            #print(sCuffDiffCommanLine)
+            
+#             regTophadOut = re.compile('(.)*_thout')
+#             dictLabels = {}
+#             for folder in os.listdir(sPath+'txdout/tophat'):
+#                 #Start grouping them based on similar names, those will become the labels
+#                 
+#                 if(len(regTophadOut.findall(folder))>=1):
+#                     sCuffDiffCommanLine += sPath + 'txdout/tophat/' + folder + '/' + 'accepted_hits.bam'
+# 
+#             #remove trailing komma
+#             sCuffDiffCommanLine = sCuffDiffCommanLine[:-1]
+#             
+#             #Create list of bam files for chemostat
+#             sCuffDiffCommanLine += ' '
+#             
+#             
+#             regTophadOut = re.compile('.*_thout')
+#             for folder in os.listdir(sPath+'txdout/chemostat'):
+#                 if(len(regTophadOut.findall(folder))>=1):
+#                     sCuffDiffCommanLine += sPath+'txdout/chemostat'+'/'+folder+'/accepted_hits.bam,'
+#             #remove trailing komma
+#             sCuffDiffCommanLine = sCuffDiffCommanLine[:-1]
+            
+            
+            
+            print(sCuffDiffCommanLine)
+            sCuffDiffCommanLine = sCuffDiffCommanLine.strip()
             os.system(sCuffDiffCommanLine)
             #Create list of bam files for chemostat
             
@@ -79,43 +114,27 @@ def checkRequiredFolders(sPath):
         bPermission = checkPermissions(sPath + 'ref_genome/genome.fa', ['R'])
         if(not bPermission):
             sErrorMessage += bPermission
-        bPermission = checkPermissions(sPath + 'txdout/merged_asm/merged.gtf', ['R'])
+        bPermission = checkPermissions(sPath + 'txdout/cuffmerge/merged_asm/merged.gtf', ['R'])
         if(not bPermission):
             sErrorMessage += bPermission
             
         #Check if the bam folders are present
-        #Batch
-        bPermission = checkPermissions(sPath + 'txdout/batch', ['R'])
-        regTophadOut = re.compile('.*_thout')
+        # Loop through Tophat folder. get the _thout folders
+        bPermission = checkPermissions(sPath + 'txdout/tophat', ['R'])
         if(not bPermission):
             sErrorMessage += bPermission
-        else: #check all the files in the folder
-            for folder in os.listdir(sPath+'txdout/batch'):
-                if(len(regTophadOut.findall(folder))>=1):                        #check if the accepted_hits.bam or sam file is present
-                    bPermission = checkPermissions(sPath + 'txdout/batch/' + folder + '/' + 'accepted_hits.bam', ['R'])
+        else:
+            regTophadOut = re.compile('(.*)_thout')
+            for folder in os.listdir(sPath+'txdout/tophat'):
+                if(len(regTophadOut.findall(folder))>=1):
+                    oLabelMatch = regTophadOut.match(folder)
+                    oLabelMatch = oLabelMatch.group(1)
+                    bPermission = checkPermissions(sPath + 'txdout/tophat/' + folder + '/' + 'accepted_hits_'+oLabelMatch+'.bam', ['R'])
                     if(not bPermission):
                         sErrorMessage += bPermission
-                    bPermission = checkPermissions(sPath + 'txdout/batch/' + folder + '/' + 'accepted_hits.bam.bai', ['R'])
-                    if(not bPermission):
-                        sErrorMessage += bPermission
-    
-        #chemostat
-        bPermission = checkPermissions(sPath + 'txdout/chemostat', ['R'])
-                               
-        if(not bPermission):
-            sErrorMessage += bPermission
-        else: #check all the files in the folder
-            for folder in os.listdir(sPath+'txdout/chemostat'):
-                if(len(regTophadOut.findall(folder))>=1):                        #check if the accepted_hits.bam or sam file is present
-                    bPermission = checkPermissions(sPath + 'txdout/chemostat/' + folder + '/' + 'accepted_hits.bam', ['R'])
-                    if(not bPermission):
-                        sErrorMessage += bPermission
-                    bPermission = checkPermissions(sPath + 'txdout/chemostat/' + folder + '/' + 'accepted_hits.bam.bai', ['R'])
+                    bPermission = checkPermissions(sPath + 'txdout/tophat/' + folder + '/' + 'accepted_hits_'+oLabelMatch+'.bam.bai', ['R'])
                     if(not bPermission):
                         sErrorMessage += bPermission                    
-        
-                    
-        
         if(not len(sErrorMessage)==0): 
             print(sErrorMessage)
             sys.exit()
@@ -159,7 +178,7 @@ def checkPermissions(sPath, lPermissions):
 ## Console call
 if __name__ == "__main__":
     
-    callCuffDiff('/local/data/course/project/groups/mango/project/')
+    callCuffDiff('/local/data/course/project/groups/mango/project_final/')
     
     
         
