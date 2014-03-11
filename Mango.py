@@ -431,18 +431,19 @@ if __name__ == "__main__":
     else:
         seqpath = workingDirectory + '/raw_fastq'
     
-    #bSucceeded =  qualityControlInput(workingDirectory,new_filenames,seqpath)
-    #if(not bSucceeded):
-    #    print(bSucceeded)
-    #    exit()
+    bSucceeded =  qualityControlInput(workingDirectory,new_filenames,seqpath)
+    if(not bSucceeded):
+        print(bSucceeded)
+        exit()
+  
+    subprocess.check_call(workingDirectory+'Cuff.sh ' + workingDirectory, shell = True)
+      
   
     bSucceeded = run_tophat2(workingDirectory)
     if(not bSucceeded):
         print(bSucceeded)
         exit()   
-	
-    subprocess.check_call(workingDirectory+'Cuff.sh ' + workingDirectory, shell = True)    
-   
+       
     bSucceeded = callCuffDiff(workingDirectory)
     if(not bSucceeded):
         print(bSucceeded)

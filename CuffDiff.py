@@ -41,15 +41,9 @@ def callCuffDiff(sPath):
             #merged.gtf file  
             #sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffmerge/merged_asm/merged.gtf'
             sCuffDiffCommanLine += ' -u ' + sPath + 'txdout/cuffcompare/cuffcmp.combined.gtf'
-            sCuffDiffCommanLine += ' -p 8'
-            
-            sCuffDiffCommanLine += ' --total-hits-norm' 
-            
-
+            #batch bam directory
             #Create list of bam files for batch
             sCuffDiffCommanLine += ' '
-            
-            
             
             regTophadOut = re.compile('(.*)\d_thout')
             dictLabels = {}
