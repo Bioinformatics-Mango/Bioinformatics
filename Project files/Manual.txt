@@ -45,41 +45,69 @@ DETAILED DESCRIPTION PER PART
 	
   CUFFLINK (ref genome)
 	- Description:
+	A shell script is written for doing the various steps of Cufflink package for all the outputs from Tophat in an easy and short way. A shell script is the user friendly way of writing the codes to run a particular software on a number of outputs of the same kind in an comfortable way.
+	
+	Estimating the expression level of each gene from RNA-seq requires the knowledge of which transcript generated which particular read. For this important is to know the different transcripts and splice variants of each gene and their read counts.  The Cufflink package concentrates on assembling the aligned RNA-Seq reads (an output from Tophat) into transcripts, estimating their abundances, and testing for differential expression and regulation transcriptome-wide. Cufflink comes as the first step in the Cufflink package that follows after Tophat output. It takes the mapped bam files and measures transcript abundances in Fragments Per Kilobase of exon per Million fragments mapped (FPKM), which is analagous to single-read "RPKM", producing transcript and gene level expression. 
+	
 	- Default options:
+	Cufflinks takes most basic commands into consideration which was carefully read through and made generalised to work best with the input files. It assembles the transcripts using the reference 'gtf' file for both the assembly and the annotation. Apart from this, the '-u: multi-read-correct' option is given, which ensures more accurate estimation of the reads mapping to multiple locations. the '-b: fragment bias detection' checks into the fact that the fragment bias correction and normalization takes into account the reference fasta file which will significantly improve the estimation. Finally the '-N: upper quartile norm' with this option, Cufflinks normalizes by the upper quartile of the number of fragments mapping to individual loci instead of the total number of sequenced fragments. This can improve robustness of differential expression calls for less abundant genes and transcripts. 
+	
 	- Input files:
-	Name			Directory		Description	
+	Cufflink expects the bam file output from the Tophat per sample in an individual directory so that it can differentiate and recognise the bam files from different samples. Apart from this, it expects the standard input of reference fasta and gtf file.
+	
 	- Output files:
-	Name			Directory		Description
+	Cufflink produces three output files:
+	1) The 'transcript.gtf' file, contains Cufflinks assembled isoforms, the chromosome and chromosomal location that they are mapped to, the gene_id, transcipt_id and some more basic information about each transcript apart from the generalized gtf format.
+	2) isoforms_fpkm.tracking file contains the FPKM values for each transcript in the data.
+	3) genes_fpkm.tracking file contains the FPKM values for each gene in the data. 
+	Both of the FPKM files contain information on the FPKM values for each trascript/gene and the corresponding annotation information that can be associated with them.
 
   CUFFMERGE
 	- Description:
+	To do a differential expression study on various samples of a RNA seq data, it is important to pool the data and have a comprehensive set of transcripts. For this purpose, Cufflinks includes the next script called Cuffmerge, a meta assembler, that merges together several Cufflinks assemblies for further use in the downstream analysis where differential expression is carried out. It automatically filters a number of transcript fragments that are probably artefacts. If a reference GTF file is available, it does a RABT (Reference Annotation Based Transcript assembly) to differentiate novel isoforms and known isoforms thus maximizing overall assembly quality.
+	
 	- Default options:
+	Cuffmerge functions on the most basic commands as there is not much to be changed unless the user needs special kinds of additions in the gtf file
+	
 	- Input files:
-	Name			Directory		Description	
+	Cuffmerge expects the a list of transcript-gtf file for each samples, the paths of each of them are first wrote to a text file so that it can read through each one of them and generate a final merged gtf file.
+	
 	- Output files:
-	Name			Directory		Description
+	Cuffmerge outputs a merged.gtf file that contains the coordinate sorted information of all transcripts.
 
   SAMTOOLS SORTING BAM FILES
 	- Description:
+	'idxstats' expected a sorted bam file and an index, which is generated using the 'sort' and 'index' function of samtools, which can be used to generate statistics report on the bam files.
 	- Default options:
+	The files are sorted based upon the coordinates.
+	
 	- Input files:
-	Name			Directory		Description	
+	SORT and INDEX needs a list of bam files.	
+	
 	- Output files:
-	Name			Directory		Description
+	A sorted "_sorted" bam file and a 'bai' index for each bam file
 
   TOPHAT STATISTICS (- custom feature which creates statistics files for the number of reads mapped in each chromosome)
 	- Description:
-	- Default options:
+	Finally it is important to visualize each of these steps in a user friendly version, that shows some statistics on the output files generated in each of these steps. Using samtools 'idxstats', the number of mapped fragments to each chromosome is represented. This could indicate the differences in the mapped reads across each sample per chromosome.
+	
 	- Input files:
-	Name			Directory		Description	
+	'idxstats' expects a sorted bam file and an index (which is generated using 'index' function of samtools automatically) file to generate statistics report on the bam files.
+	
 	- Output files:
-	Name			Directory		Description
+	The 'idxstats' gives a final text file that contains the chromosome level information on the length of each chromosome, number of mapped reads and number of unmapped reads.
 
   CUFFCOMPARE (- cuffcompare, do cuffcompare to generate the genes and transcripts that differ from the reference)
 	- Description:
+	To get a better insight into the transcript differences between the subject of study and reference, Cufflinks includes a program that can analyse the assembled transfrags. The program Cuffcompare helps to: Compare the assembled transcripts to a reference annotation and track Cufflinks transcripts across multiple experiments. It produces an output that shows the different kinds of matches and mismatches of transfrags to the reference.
+	Using some more awk commands for simple manupulation on text files, another text file is generated that gives the novel isoforms in the transcript file with respect to the reference.
+	
 	- Default options:
+	Cuffcompare like Cuffmerge functions on the most basic commands as there is not much to be changed unless the user needs special kinds of additions in the gtf file or a particular prefix to be appended to identify the samples.
+	
 	- Input files:
-	Name			Directory		Description	
+	Cuffcompare on the other hands needs the individual gtf file so that it can compare each one of them against the reference file. 
+	
 	- Output files:
 	Name			Directory		Description
 
@@ -89,7 +117,13 @@ DETAILED DESCRIPTION PER PART
 	- Input files:
 	Name			Directory		Description	
 	- Output files:
-	Name			Directory		Description
+	Cuffcompare outputs 6 different files:
+	1) The '.stats' file generates the accuracy, specificity, sensitivity and other statistics on each transcript from each sample at various levels (nucleotide, exon, intron, transcript, gene).
+	2) The '.combined.gtf' file produces the same output as the Cuffmerge only that it now writes more annotation to the file from the reference gtf file.
+	3) The '.tracking' file contains the comparison of transcripts across each sample. Each row contains a transcript structure that is present in one or more input GTF files.
+	4) The '.refmap' tab-delimited file gives for each reference transcript, which Cufflinks transcripts either fully or partially match it.
+	5) The '.tmap' tab-delimited file gives the most closely matching reference transcript for each Cufflinks transcript.
+	The cuffcmp_statistics.txt file contains information on the number of isoforms matching and novel isoforms for each sample in each condition. The detailed information on the various class codes outputted in the file can be found as a Legend at the end of the text file.
 
   CUSTOM FEATURE  
 	- Description:
@@ -134,6 +168,8 @@ DETAILED DESCRIPTION PER PART
 	Name			Directory		Description
 
 WORKING DIRECTORY
+
+Cuff
 	
 	
 	 
