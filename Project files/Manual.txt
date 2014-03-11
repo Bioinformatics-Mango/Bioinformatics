@@ -1,13 +1,44 @@
-Advanced bioinformatics - Mango - Manual
-========================================
+Advanced bioinformatics - Mango - Manual - Differential expression analysis between two treatments
+==================================================================================================
 
 INTRODUCTION
-   - Why this pipeline is created
-   - What you can use the pipeline for
-This pipeline can be used for paired-end reads from sequenced cDNA derived from mRNA. It can handle multiple replicates and two treatments. 
-The organism should have a reference genome for genome based alignment. 
-   - Per part explaining what it is used for
+	RNA-Seq is a recently developed approach to analyse transcriptomes using deep-sequencing technologies. 
+	RNA-Seq generates large datasets providing a precise measurement of levels of transcripts and their 
+	isoforms (Wang, Gerstein, & Snyder, 2009). RNA-Seq offers the ability to discover new genes and transcripts 
+	as well as measuring transcript expression in a single assay (Trapnell et al., 2012). Due to the nature 
+	of deep-sequencing technologies, many computational steps are involved in analysing this data. 
 
+	In order to aid biologists in analysing RNA-Seq, this automated script analysis differential 
+	gene expression by comparing RNA-Seq paired-end data between multiple samples and two treatments. 
+	Using this pipeline, scientists with limited knowledge of Informatics or with support of an Information Technology (IT) 
+	department can perform 	RNA-Seq differential expression analysis with a single command. Moreover, this pipeline uses an 
+	easily understandable folder structure giving access to the separate output of each individual step.
+
+	To perform an analysis with article quality output, several steps of data manipulation and statistical inferences are needed. 
+	In this pipeline, the output is generated using the following, among others, steps:
+	-	quality control of sequence reads
+	-	alignment of sequence reads to a reference genome
+	-	assemble transcripts
+	-	quantify expression levels of each transfrag
+	-	parsimoniously merging of transfrags reads
+	-	annotation of transcripts against a reference annotation
+	-	differential expression analysis 
+	-	GO-enrichment
+
+SYSTEM REQUIREMENTS:
+	In order to run properly, this pipeline requires the following packages to be installed in a linux enviroment:
+	- R - environment
+	- Python
+	- Tophat2
+	- Cufflinks
+	- Cuffmerge
+	- Cuffdiff
+	-
+
+USAGE & EASY OUTPUT
+	If you’re interested in the intermediate output of the pipeline, please consult the detailed descriptions as mentioned below.
+	Todo
+	
 DETAILED DESCRIPTION PER PART
   QUALITY CONTROL
 	- Description: This part uses fastqc (http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) to assess read quality and Trimmomatic for 
@@ -143,6 +174,7 @@ DETAILED DESCRIPTION PER PART
 
   CUFFDIFF
 	- Description:
+	
 	- Default options:
 	- Input files:
 	Name			Directory		Description	
@@ -173,3 +205,8 @@ Cuff
 	
 	
 	 
+REFERENCES
+Trapnell, C., Roberts, A., Goff, L., Pertea, G., Kim, D., Kelley, D. R., … Pachter, L. (2012). Differential gene and transcript expression analysis of RNA-seq experiments with TopHat and Cufflinks. Nature Protocols, 7(3), 562–78. doi:10.1038/nprot.2012.016
+Wang, Z., Gerstein, M., & Snyder, M. (2009). RNA-Seq: a revolutionary tool for transcriptomics. Nature Reviews. Genetics, 10, 57–63. doi:10.1038/nrg2484
+
+
