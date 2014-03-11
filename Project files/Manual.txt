@@ -1,29 +1,139 @@
-Advanced bioinformatics - Mango
- - Handleiding
-  - Contents table
-  - Introduction
+Advanced bioinformatics - Mango - Manual
+========================================
+
+INTRODUCTION
    - Why this pipeline is created
    - What you can use the pipeline for
+This pipeline can be used for paired-end reads from sequenced cDNA derived from mRNA. It can handle multiple replicates and two treatments. 
+The organism should have a reference genome for genome based alignment. 
    - Per part explaining what it is used for
-    - Quality control
-	- Tophat2
-	- cufflink (ref genome)
-	- cuffmerge
-	- samtools sorting the bam files
-	- custom feature which creates statistics files for the number of reads mapped in each chromosome
-	- cuffcompare, do cuffcompare to generate the genes and transcripts that differ from the reference
-	- Custom feature
-	- Picard to mark duplicates in the bam files
-	- HTseq
-	 - Create same file from bam file
-	 - Sort sam file
-	- CuffDiff
-	- Vulcano plot
-	- mapping reads per kbp
-	- Working directory
 
-Per part	
-	Description text
-	Some default options we chose
-	Table input files
-	Table output files
+DETAILED DESCRIPTION PER PART
+  QUALITY CONTROL
+	- Description: This part uses fastqc (http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) to assess read quality and Trimmomatic for 
+	trimming (http://www.usadellab.org/cms/?page=trimmomatic). It finds all fastq files in a given directory, and trims it according to options 
+	given below. A fastqc report is created per fastq file before and after trimming. 
+	
+	- Default options: 
+		fastqc:
+		 All default options
+		Trimmomatic: 
+		 ILLUMINACLIP:'/Trimmomatic-0.32/adapters/TruSeq3-PE-2.fa':2:30:10
+		 HEADCROP:15
+		 LEADING:30
+		 TRAILING:30
+		 MINLEN:25
+	- Input  files:
+	Name			Directory		Description	
+	*.fastq			~/raw_fastq/		raw fastq files
+	new_filenames.txt	~/			text file with new filenames on every newline. Is in the same alphabetical order as raw fastq files
+
+	- Output files:
+	Type			Directory		Description
+	*_fastqc		~/fastqc_out/		fastqc report before (before_trimming/) and after trimming (after_trimming/)
+	paired_*.fastq		~/trimmed_fastq/	paired fastq files after trimming 
+	unpaired_*.fastq	~/trimmed_fastq/	unpaired fastq files (pairing partner removed)
+
+  TOPHAT2
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+	
+  CUFFLINK (ref genome)
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  CUFFMERGE
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  SAMTOOLS SORTING BAM FILES
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  TOPHAT STATISTICS (- custom feature which creates statistics files for the number of reads mapped in each chromosome)
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  CUFFCOMPARE (- cuffcompare, do cuffcompare to generate the genes and transcripts that differ from the reference)
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  MARK DUPLICATES (- Picard to mark duplicates in the bam files)
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  CUSTOM FEATURE  
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  HTSEQ (- HTseq; - Create same file from bam file; - Sort sam file)
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  CUFFDIFF
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+  VULCANO PLOT
+	- Description: creates a volcano plot from cuffdiff output using R
+	- Default options: 
+	- Input files:
+	Name			Directory		Description	
+	gene_exp.diff		~/txdout/cuffdiff/	Cuffdiff output with q values and log2 fold change
+	- Output files:
+	Name			Directory		Description
+	- volcano_plot.png	~/plots/		png with volcano plot
+
+  MAPPING READS PER KB
+	- Description:
+	- Default options:
+	- Input files:
+	Name			Directory		Description	
+	- Output files:
+	Name			Directory		Description
+
+WORKING DIRECTORY
+	
+	
+	 
