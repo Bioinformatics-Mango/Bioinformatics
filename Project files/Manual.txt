@@ -1,5 +1,7 @@
 ﻿Advanced bioinformatics - Mango - Manual - Differential expression analysis between two treatments
 ==================================================================================================
+Authors:			Adithi Varadarajan, Nikos Pappas, Geert van Geest, Nick Alberts, Marcel van de Streek
+Date of revision:	11 March 2014
 
 INTRODUCTION
 	RNA-Seq is a recently developed approach to analyse transcriptomes using deep-sequencing technologies. 
@@ -26,19 +28,78 @@ INTRODUCTION
 	-	GO-enrichment
 
 SYSTEM REQUIREMENTS:
-	In order to run properly, this pipeline requires the following packages to be installed in a linux enviroment:
+	In order to run properly, this pipeline it is expected that the following packages to be installed in a linux enviroment:
 	- R - environment
 	- Python
+	- fastqc
 	- Tophat2
 	- Cufflinks
-	- Cuffmerge
-	- Cuffdiff
-	-
-
-USAGE & EASY OUTPUT
-	If you’re interested in the intermediate output of the pipeline, please consult the detailed descriptions as mentioned below.
-	Todo
+	- Cuffmerge  (comes with Cufflinks)
+	- Cuffcompare(comes with Cufflinks)
+	- Cuffdiff	 (comes with Cufflinks)
 	
+BASIC USAGE
+	
+	After verifying the installation of all the packages mentioned in SYSTEM REQUIREMENTS, the pipeline is almost ready for use.
+	Besides the packages, this pipeline uses a structured working directory in which mandatory input files have to be placed in the correct folders.
+	
+	Please follow these steps to setup your working directory for each run:
+	1. Group your FASTQ files according to treatment and create a folder with a corresponding name in the folder ~/raw_fastq.
+	   Copy your FASTQ input files into their corresponding directories.
+	   While doing this, make sure each matching paired end FASTQ file is named similar and that forward is marked with _1 and reverse is marked with _2.
+	2. Open new_filenames.txt in your favourite editor.
+	   For each FASTQ file in the input folder it is possible to add a new filename. The filenames specified in new_filenames.txt will be
+	   used to identify the sample results throughout this pipeline.
+	3. Download the reference genome of your target organism
+	4. Find, copy the following data files from your downloaded reference genome to ~/ref_genome
+	   File description														Required action
+	   1. Genomesequence in FASTA format and its corresponding index file, 	rename these file to genome.fa and genome.fa.fai respectively
+	   2. (optional) Mitochondrial DNA sequence in FASTA format, 			rename this file to M without file extension
+	   3. Gene annotation file in GTF format, 								rename this file to genes.gtf
+	   4. Genome bowtie2 files, 											rename these files to genome.x.bt2.
+																			If these files are not found you will have to manually generate them using bowtie2
+	   5. Genome dictionary, 												rename this file to genome.dict
+	5. Check if all files have read/write and execute rights for the user executing the pipeline
+	6. Call the pipeline via python in your linux shell: 
+	
+		python Mango.py working directory new_filenames.txt
+		For example if your working directory is called 'DE_Heatshock' in your linux root directory. You navigate to DE_Heatshock and execute the following shell command:
+		python Mango.py /DE_Heatshock new_filenames.txt
+
+	If you’re interested in the intermediate output of the pipeline, please consult the detailed descriptions as mentioned below.
+	
+WORKING DIRECTORY AND CONTENTS
+	For a detailed description of the working directory, please move to the end of this file.
+	
+	-Root
+		Mango.py
+		Cuff.sh
+		new_filenames.txt
+		volcano.R
+		-ref_genome
+		-raw_fastq
+		-fastqc_out
+		  -before_trimming
+			 -paired_<condition><replicate>_<1|2>
+				-paired_<condition><replicate>_<1|2>_fastqc
+				   Quality reports
+			 -unpaired_<condition><replicate>_<1|2>
+				-unpaired_<condition><replicate>_<1|2>_fastqc
+				   Quality reports
+		  -after_trimming
+			  ...
+		-trimmed_fastq
+		  Trimmed files
+		-txdout
+		  -tophat
+			 -<condition><replicate>_<1|2>_thout
+				Accepted_hits.bam files and Intermediate files
+
+		  -cufflinks
+		  -cuffmerge
+		  -cuffdiff
+
+=============================
 DETAILED DESCRIPTION PER PART
   QUALITY CONTROL
 	- Description: This part uses fastqc (http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) to assess read quality and Trimmomatic for 
@@ -115,32 +176,49 @@ DETAILED DESCRIPTION PER PART
 	
   CUFFLINK (ref genome)
 	- Description:
-	A shell script is written for doing the various steps of Cufflink package for all the outputs from Tophat in an easy and short way. A shell script is the user friendly way of writing the codes to run a particular software on a number of outputs of the same kind in an comfortable way.
+	A shell script is written for doing the various steps of Cufflink package for all the outputs from Tophat in an easy and short way. 
+	A shell script is the user friendly way of writing the codes to run a particular software on a number of outputs of the same kind in an comfortable way.
 	
-	Estimating the expression level of each gene from RNA-seq requires the knowledge of which transcript generated which particular read. For this important is to know the different transcripts and splice variants of each gene and their read counts.  The Cufflink package concentrates on assembling the aligned RNA-Seq reads (an output from Tophat) into transcripts, estimating their abundances, and testing for differential expression and regulation transcriptome-wide. Cufflink comes as the first step in the Cufflink package that follows after Tophat output. It takes the mapped bam files and measures transcript abundances in Fragments Per Kilobase of exon per Million fragments mapped (FPKM), which is analagous to single-read "RPKM", producing transcript and gene level expression. 
+	Estimating the expression level of each gene from RNA-seq requires the knowledge of which transcript generated which particular read. 
+	For this important is to know the different transcripts and splice variants of each gene and their read counts.  The Cufflink package concentrates 
+	on assembling the aligned RNA-Seq reads (an output from Tophat) into transcripts, estimating their abundances, and testing for differential expression 
+	and regulation transcriptome-wide. Cufflink comes as the first step in the Cufflink package that follows after Tophat output. It takes the mapped bam 
+	files and measures transcript abundances in Fragments Per Kilobase of exon per Million fragments mapped (FPKM), which is analagous to single-read "RPKM", 
+	producing transcript and gene level expression. 
 	
 	- Default options:
-	Cufflinks takes most basic commands into consideration which was carefully read through and made generalised to work best with the input files. It assembles the transcripts using the reference 'gtf' file for both the assembly and the annotation. Apart from this, the '-u: multi-read-correct' option is given, which ensures more accurate estimation of the reads mapping to multiple locations. the '-b: fragment bias detection' checks into the fact that the fragment bias correction and normalization takes into account the reference fasta file which will significantly improve the estimation. Finally the '-N: upper quartile norm' with this option, Cufflinks normalizes by the upper quartile of the number of fragments mapping to individual loci instead of the total number of sequenced fragments. This can improve robustness of differential expression calls for less abundant genes and transcripts. 
+	Cufflinks takes most basic commands into consideration which was carefully read through and made generalised to work best with the input files. It assembles 
+	the transcripts using the reference 'gtf' file for both the assembly and the annotation. Apart from this, the '-u: multi-read-correct' option is given, 
+	which ensures more accurate estimation of the reads mapping to multiple locations. the '-b: fragment bias detection' checks into the fact that the fragment 
+	bias correction and normalization takes into account the reference fasta file which will significantly improve the estimation. Finally the '-N: upper quartile norm' 
+	with this option, Cufflinks normalizes by the upper quartile of the number of fragments mapping to individual loci instead of the total number of sequenced fragments. 
+	This can improve robustness of differential expression calls for less abundant genes and transcripts. 
 	
 	- Input files:
-	Cufflink expects the bam file output from the Tophat per sample in an individual directory so that it can differentiate and recognise the bam files from different samples. Apart from this, it expects the standard input of reference fasta and gtf file.
+	Cufflink expects the bam file output from the Tophat per sample in an individual directory so that it can differentiate and recognise the bam files from different samples. 
+	Apart from this, it expects the standard input of reference fasta and gtf file.
 	
 	- Output files:
 	Cufflink produces three output files:
-	1) The 'transcript.gtf' file, contains Cufflinks assembled isoforms, the chromosome and chromosomal location that they are mapped to, the gene_id, transcipt_id and some more basic information about each transcript apart from the generalized gtf format.
+	1) The 'transcript.gtf' file, contains Cufflinks assembled isoforms, the chromosome and chromosomal location that they are mapped to, the gene_id, transcipt_id and some 
+	   more basic information about each transcript apart from the generalized gtf format.
 	2) isoforms_fpkm.tracking file contains the FPKM values for each transcript in the data.
 	3) genes_fpkm.tracking file contains the FPKM values for each gene in the data. 
 	Both of the FPKM files contain information on the FPKM values for each trascript/gene and the corresponding annotation information that can be associated with them.
 
   CUFFMERGE
 	- Description:
-	To do a differential expression study on various samples of a RNA seq data, it is important to pool the data and have a comprehensive set of transcripts. For this purpose, Cufflinks includes the next script called Cuffmerge, a meta assembler, that merges together several Cufflinks assemblies for further use in the downstream analysis where differential expression is carried out. It automatically filters a number of transcript fragments that are probably artefacts. If a reference GTF file is available, it does a RABT (Reference Annotation Based Transcript assembly) to differentiate novel isoforms and known isoforms thus maximizing overall assembly quality.
+	To do a differential expression study on various samples of a RNA seq data, it is important to pool the data and have a comprehensive set of transcripts. For this purpose, 
+	Cufflinks includes the next script called Cuffmerge, a meta assembler, that merges together several Cufflinks assemblies for further use in the downstream analysis where 
+	differential expression is carried out. It automatically filters a number of transcript fragments that are probably artefacts. If a reference GTF file is available, it does 
+	a RABT (Reference Annotation Based Transcript assembly) to differentiate novel isoforms and known isoforms thus maximizing overall assembly quality.
 	
 	- Default options:
 	Cuffmerge functions on the most basic commands as there is not much to be changed unless the user needs special kinds of additions in the gtf file
 	
 	- Input files:
-	Cuffmerge expects the a list of transcript-gtf file for each samples, the paths of each of them are first wrote to a text file so that it can read through each one of them and generate a final merged gtf file.
+	Cuffmerge expects the a list of transcript-gtf file for each samples, the paths of each of them are first wrote to a text file so that it can read through each one of them 
+	and generate a final merged gtf file.
 	
 	- Output files:
 	Cuffmerge outputs a merged.gtf file that contains the coordinate sorted information of all transcripts.
@@ -159,7 +237,8 @@ DETAILED DESCRIPTION PER PART
 
   TOPHAT STATISTICS (- custom feature which creates statistics files for the number of reads mapped in each chromosome)
 	- Description:
-	Finally it is important to visualize each of these steps in a user friendly version, that shows some statistics on the output files generated in each of these steps. Using samtools 'idxstats', the number of mapped fragments to each chromosome is represented. This could indicate the differences in the mapped reads across each sample per chromosome.
+	Finally it is important to visualize each of these steps in a user friendly version, that shows some statistics on the output files generated in each of these steps. Using samtools 
+	'idxstats', the number of mapped fragments to each chromosome is represented. This could indicate the differences in the mapped reads across each sample per chromosome.
 	
 	- Input files:
 	'idxstats' expects a sorted bam file and an index (which is generated using 'index' function of samtools automatically) file to generate statistics report on the bam files.
@@ -169,11 +248,14 @@ DETAILED DESCRIPTION PER PART
 
   CUFFCOMPARE (- cuffcompare, do cuffcompare to generate the genes and transcripts that differ from the reference)
 	- Description:
-	To get a better insight into the transcript differences between the subject of study and reference, Cufflinks includes a program that can analyse the assembled transfrags. The program Cuffcompare helps to: Compare the assembled transcripts to a reference annotation and track Cufflinks transcripts across multiple experiments. It produces an output that shows the different kinds of matches and mismatches of transfrags to the reference.
+	To get a better insight into the transcript differences between the subject of study and reference, Cufflinks includes a program that can analyse the assembled transfrags. The program 
+	Cuffcompare helps to: Compare the assembled transcripts to a reference annotation and track Cufflinks transcripts across multiple experiments. It produces an output that shows the different 
+	kinds of matches and mismatches of transfrags to the reference.
 	Using some more awk commands for simple manupulation on text files, another text file is generated that gives the novel isoforms in the transcript file with respect to the reference.
 	
 	- Default options:
-	Cuffcompare like Cuffmerge functions on the most basic commands as there is not much to be changed unless the user needs special kinds of additions in the gtf file or a particular prefix to be appended to identify the samples.
+	Cuffcompare like Cuffmerge functions on the most basic commands as there is not much to be changed unless the user needs special kinds of additions in the gtf file or a particular prefix to 
+	be appended to identify the samples.
 	
 	- Input files:
 	Cuffcompare on the other hands needs the individual gtf file so that it can compare each one of them against the reference file. 
@@ -193,15 +275,8 @@ DETAILED DESCRIPTION PER PART
 	3) The '.tracking' file contains the comparison of transcripts across each sample. Each row contains a transcript structure that is present in one or more input GTF files.
 	4) The '.refmap' tab-delimited file gives for each reference transcript, which Cufflinks transcripts either fully or partially match it.
 	5) The '.tmap' tab-delimited file gives the most closely matching reference transcript for each Cufflinks transcript.
-	The cuffcmp_statistics.txt file contains information on the number of isoforms matching and novel isoforms for each sample in each condition. The detailed information on the various class codes outputted in the file can be found as a Legend at the end of the text file.
-
-  CUSTOM FEATURE  
-	- Description:
-	- Default options:
-	- Input files:
-	Name			Directory		Description	
-	- Output files:
-	Name			Directory		Description
+	   The cuffcmp_statistics.txt file contains information on the number of isoforms matching and novel isoforms for each sample in each condition. The detailed information on the various class codes 
+	   outputted in the file can be found as a Legend at the end of the text file.
 
   HTSEQ (- HTseq; - Create same file from bam file; - Sort sam file)
 	- Description:
@@ -292,11 +367,94 @@ DETAILED DESCRIPTION PER PART
 	Name				Directory		Description
 	mapped_reads_per_1000bp.txt	~/txdout/tophat/	Tab delimited file containing average reads per kb with samplename as header and chromosome name as rowname		
 
-WORKING DIRECTORY
+WORKING DIRECTORY DETAILS
+=========================
+-Root
+This is the working directory. The user inputs (a) a folder containing the sequence reads (in fastq format) for the analysis 
+and (b) a .txt file with the new filenames that define the names of the quality controlled fastq files generated by the pipeline, 
+(c) a folder containing all the reference annotations of the genome (see ref_genome directory below). After calling the pipeline 
+script the different subdirectories are automatically created.
 
-Cuff
+Contents: 
+	Mango.py -> Python script for running the pipeline.
+	Cuff.sh -> Bash script for running cufflinks and cuffmerge and statistical reports of the output.
+	Trimommatic v0.32 -> The software used for the quality analysis of the raw fastq input files.
+	volcano.R -> R script for creating volcano plots of the data generated in the pipeline.
+		  
+	-ref_genome
+	This folder must contain the following files (provided by the user):
+		genome.fa -> A fasta file of the organism's genome sequence.
+		genome.fa.fai -> An index file corresponding to the genome.fa file of the genome.
+		genome.*.bt2 -> All the bowtie2 index files of the genome being analyzed. 
+				For a more detailed description of what these files are and how they can be obtained please visit the bowtie2 manual 							page (http://bowtie-bio.sourceforge.net/manual.shtml).
 	
+	-raw_fastq	
+	Contents: The fastq files of sequence reads provided by the user. Should contain an even number of files corresponding pairwise to the paired-end reads for 		each replicate/condition. The format of the names should be <filename1>_1.fastq and <filename1>_2.fastq, with filename1 being the same for each 	replicate/condition.
 	
+	-fastqc_out
+	This folder is created after the sequence reads quality control is done. It contains subfolders with the quality control for each paired-reads file before and 		after trimming. The layout of these folders is shown below:
+		
+		-after_trimming
+			-<paired_condition_1>
+			-<paired_condition_2>
+			-<unpaired_condtion_1>
+			-<unpaired_condition_2>
+				...
+
+		-before_trimming
+			-<paired_condition_1>
+			-<paired_condition_2>
+			-<unpaired_condtion_1>
+			-<unpaired_condition_2>
+				...	
+					Each folder contains fastqc quality reports for each of the individual paired-end reads file and for the remaining unpaired, 						resulted from the quality control with Trimmomatic.
+		
+	-trimmed_fastq
+	This folder is created after the reads quality analysis is run.
+	Contents: The fastq files with improved quality that will be used for further analysis.
+
+	-txdout
+	This folder is created at the beginning of the analysis.
+	Contents: For each of the subsequent steps of the analysis a folder is created containing its corresponding output.
+	NOTE: For a more detailed description of the output of each part of the pipeline please see the corresponding manual part.
+
+		-tophat
+		The results of the read mapping are stored here. For the different conditions and their replicates the results are stored into different folders of the 		layout:
+			-<condition[replicate]_thout>
+			This file contains a number of intermediate files produced during the mapping of the reads. The TopHat part of the pipeline first maps the kept 			paired reads from the quality control. Then it maps the remaining unpaired reads and uses the resulting output of both, to merge them in one 				bam file with samtools. This .bam file is then used for further downstream analysis. 
+			Contents: accepted_hits_condition[replicate].bam -> The bam file resulting after the merge with samtools of the bam files produced after 									    	    mapping the paired and the unpaired reads.
+				   
+				  accepted_hits.bam -> The bam file produced from mapping the paired reads
+				 -unpaired_condition[replicate]_1 -> Contains the results after mapping the forward part of the unpaired reads.
+				 -unpaired_condition[replicate]_2 -> Contains the results after mapping the reverse part of the unpaired reads.
+				  
+				 -logs
+				  unmapped.bam
+				  insertions.bed	
+			          align_summary.txt				  
+				  deletions.bed
+			          junctions.bed
+				  prep_reads.info
+				 			
+
+		-cufflinks
+		
+		-cuffmerge
+
+		-cuffdiff
+			cds.diff				
+			promoters.diff			
+			splicing.diff			
+			
+			cds_exp.diff			
+			gene_exp.diff			
+			isoform_exp.diff		
+			tss_group_exp.diff		
+			
+			cds.fpkm_tracking		
+			genes.fpkm_tracking		
+			isoforms.fpkm_tracking	
+			tss_groups.fpkm_tracking
 	 
 REFERENCES
 Trapnell, C., Roberts, A., Goff, L., Pertea, G., Kim, D., Kelley, D. R., … Pachter, L. (2012). Differential gene and transcript expression analysis of RNA-seq experiments with TopHat and Cufflinks. Nature Protocols, 7(3), 562–78. doi:10.1038/nprot.2012.016
