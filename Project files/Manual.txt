@@ -1,4 +1,4 @@
-Advanced bioinformatics - Mango - Manual - Differential expression analysis between two treatments
+﻿Advanced bioinformatics - Mango - Manual - Differential expression analysis between two treatments
 ==================================================================================================
 Authors:			Adithi Varadarajan, Nikos Pappas, Geert van Geest, Nick Alberts, Marcel van de Streek
 Date of revision:	11 March 2014
@@ -320,12 +320,14 @@ DETAILED DESCRIPTION PER PART
 	- volcano_plot.png	~/plots/		png with volcano plot
 
   MAPPING READS PER KB
-	- Description:
-	- Default options:
+	- Description: calculates number of reads per mapped per kb per chromosome and aggregates it into a table with samplename as header and chromosome names as rownames
+	- Default options: N/A
 	- Input files:
 	Name			Directory		Description	
+	tophat_statistics.txt	~/txdout/tophat/	Output of TOPHAT STATISTICS
 	- Output files:
-	Name			Directory		Description
+	Name				Directory		Description
+	mapped_reads_per_1000bp.txt	~/txdout/tophat/	Tab delimited file containing average reads per kb with samplename as header and chromosome name as rowname		
 
 WORKING DIRECTORY DETAILS
 =========================
