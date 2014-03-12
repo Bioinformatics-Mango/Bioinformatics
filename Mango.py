@@ -404,7 +404,7 @@ def callCuffDiff(sPath):
     return ''
 ### End CuffDiff functions
 
-### Create Volcano plot
+### Create cuffdiff plots
 def createVolcanoplot(workingDirectory):
     cuffdiff_out = workingDirectory + '/txdout/cuffdiff/gene_exp.diff'
     
@@ -412,15 +412,15 @@ def createVolcanoplot(workingDirectory):
     #create directory for plots
     plotdir = make_dir(workingDirectory, '/plots')
     #execute R script 
-    source_function = ["\"source('"+workingDirectory+"volcano.R')"]
-    execute_function = [";volcano('" + cuffdiff_out +"','"+ plotdir +"/volcano_plot.png')\""]
+    source_function = ["\"source('"+workingDirectory+"cuffdiff_plots.R')"]
+    execute_function = [";cuffdiff_plots('" + cuffdiff_out +"','"+ plotdir +"/')\""]
     R_cmd_list = ["R -e "]+source_function+execute_function
     R_cmd = ''.join(R_cmd_list)
     check_output(R_cmd, shell=True)
     '''
     COMMAND LINE = python Volcano_plot.py '/local/data/course/project/groups/mango/project_final'
     '''
-### End Volcano plot
+### End cuffdiff plots
 
 
 if __name__ == "__main__":
