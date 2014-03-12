@@ -398,10 +398,54 @@ def callCuffDiff(sPath):
             sCuffDiffCommanLine = sCuffDiffCommanLine.strip()                                   #remove trailing space
             #print(sCuffDiffCommanLine)                                                          #Showing cuffdiff commandline for debugging
             os.system(sCuffDiffCommanLine)                                                      #Execute cuffdiff commandline
+			
+			
+			#Replace the genenames in the output with geneID's needed for go terms and save it in a seperate file
+            outFile = sPath + 'txdout/cuffdiff/' + 'gene_exp2.diff'
+            refFile= sPath + 'ref_genome/genes.gtf'
+            check_output('cp gene_exp.diff ' + outFile, shell=True)
+            check_output('chmod 777 ' + outFile, shell=True)
+            
+            infile = open(sPath + 'txdout/cuffdiff/' +"gene_exp.diff", 'r')    
+            infile.readline()   # skip the first line
+            for line in infile:
+                splitLine = line.split('\t')
+                geneName = splitLine[2]
+                geneID = getCuffDiffGeneIDByGeneName(geneName,refFile)
+                print(geneName,geneID)
+                if(not geneName == geneID):
+                    replaceCuffDiffGeneNameByGeneID(geneName,geneID)
+            infile.close()  
+			
+			
             return True                                                                         #Return true if the command is executed successfully
     except:
         return sys.exc_info()[0]                                                                #Return the error to the function caller if something whent wrong
     return ''
+	
+def getCuffDiffGeneIDByGeneName(sGeneName, refFile='genes.gtf'):
+    sInputGeneName = sGeneName.strip()
+    sGeneName = sGeneName.strip()
+    sGeneNameList = sGeneName.split(',')
+    if(len(sGeneNameList)==1 and not sGeneName=='-'):
+        sGeneName = '\('.join(sGeneName.split('('))
+        if(len(sGeneName.split('('))>1):
+            print(sGeneName)
+        sGeneName = '\)'.join(sGeneName.split(')'))
+        if(len(sGeneName.split(')'))>1):
+            print(sGeneName)
+        command = 'grep -E \'gene_id ".*"; gene_name "' + sGeneName + '"\' genes.gtf -o -w -m 1 | grep -E \'".*"\' -o -w -m 1 | grep \'[a-z A-Z 0-9 -]*\' -o -w -m 1 | head -1'
+        if(len(sGeneName.split(')'))>1):
+            print(command)
+        output = check_output(command, shell=True).strip()
+    else:
+        output = sGeneName
+    return output
+
+def replaceCuffDiffGeneNameByGeneID(sGeneName,sGeneID,outFile = 'gene_exp2.diff'):
+    command = 'sed -i \'s/' + sGeneName + '/' + sGeneID + '/g\' ' + outFile
+    output = check_output(command, shell=True).strip()
+    	
 ### End CuffDiff functions
 
 ### Create cuffdiff plots
