@@ -311,7 +311,6 @@ DETAILED DESCRIPTION PER PART
 	
   VULCANO PLOT
 	- Description: creates a volcano plot from cuffdiff output using R
-	- Default options: 
 	- Input files:
 	Name			Directory		Description	
 	gene_exp.diff		~/txdout/cuffdiff/	Cuffdiff output with q values and log2 fold change
