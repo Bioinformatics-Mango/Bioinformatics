@@ -88,23 +88,22 @@ def checkPermissions(sPath, lPermissions):
     if(os.path.exists(sPath)):
         #Check file permissions
         sErrorMessage = ''
+        sPermissiosn = ''
         for sPermissiosn in lPermissions:
             if(sPermissiosn =='R' and not os.access(sPath, os.R_OK)):
                 sErrorMessage = 'Could not open ' + sPath + ' for reading. \n'
-            elif(not os.access(sPath, os.W_OK)):
+            elif(sPermissiosn =='W' and not os.access(sPath, os.W_OK)):
                 sErrorMessage += 'Could not open ' + sPath + ' for writing. \n'
-            elif(not os.access(sPath, os.X_OK)):
-                sErrorMessage += 'Could not open ' + sPath + ' for executing.'
+            elif(sPermissiosn =='X' and not os.access(sPath, os.X_OK)):
+                sErrorMessage += 'Could not open ' + sPath + ' for executing.\n'
         if(len(sErrorMessage)==0):
             
             return True
         else:
             return sErrorMessage
     else:
-        print('Could not find: ' + sPath)
-        print('Are you missing the absolute path?')
-        return 'Could not find: ' + sPath   
-    return ''
+        return False  
+    return ''    
 ### End General functions
 
 
@@ -398,9 +397,9 @@ def callCuffDiff(sPath):
             sCuffDiffCommanLine = sCuffDiffCommanLine.strip()                                   #remove trailing space
             #print(sCuffDiffCommanLine)                                                          #Showing cuffdiff commandline for debugging
             os.system(sCuffDiffCommanLine)                                                      #Execute cuffdiff commandline
-			
-			
-			#Replace the genenames in the output with geneID's needed for go terms and save it in a seperate file
+            
+            
+            #Replace the genenames in the output with geneID's needed for go terms and save it in a seperate file
             outFile = sPath + 'txdout/cuffdiff/' + 'gene_exp2.diff'
             refFile= sPath + 'ref_genome/genes.gtf'
             check_output('cp gene_exp.diff ' + outFile, shell=True)
@@ -415,14 +414,13 @@ def callCuffDiff(sPath):
                 print(geneName,geneID)
                 if(not geneName == geneID):
                     replaceCuffDiffGeneNameByGeneID(geneName,geneID)
-            infile.close()  
-			
-			
+            infile.close()   
+            
             return True                                                                         #Return true if the command is executed successfully
     except:
         return sys.exc_info()[0]                                                                #Return the error to the function caller if something whent wrong
     return ''
-	
+
 def getCuffDiffGeneIDByGeneName(sGeneName, refFile='genes.gtf'):
     sInputGeneName = sGeneName.strip()
     sGeneName = sGeneName.strip()
@@ -445,10 +443,12 @@ def getCuffDiffGeneIDByGeneName(sGeneName, refFile='genes.gtf'):
 def replaceCuffDiffGeneNameByGeneID(sGeneName,sGeneID,outFile = 'gene_exp2.diff'):
     command = 'sed -i \'s/' + sGeneName + '/' + sGeneID + '/g\' ' + outFile
     output = check_output(command, shell=True).strip()
-    	
+    
+
 ### End CuffDiff functions
 
-### Create cuffdiff plots
+
+### Create Volcano plot
 def createVolcanoplot(workingDirectory):
     cuffdiff_out = workingDirectory + '/txdout/cuffdiff/gene_exp.diff'
     
@@ -456,15 +456,15 @@ def createVolcanoplot(workingDirectory):
     #create directory for plots
     plotdir = make_dir(workingDirectory, '/plots')
     #execute R script 
-    source_function = ["\"source('"+workingDirectory+"cuffdiff_plots.R')"]
-    execute_function = [";cuffdiff_plots('" + cuffdiff_out +"','"+ plotdir +"/')\""]
+    source_function = ["\"source('"+workingDirectory+"volcano.R')"]
+    execute_function = [";volcano('" + cuffdiff_out +"','"+ plotdir +"/volcano_plot.png')\""]
     R_cmd_list = ["R -e "]+source_function+execute_function
     R_cmd = ''.join(R_cmd_list)
     check_output(R_cmd, shell=True)
     '''
     COMMAND LINE = python Volcano_plot.py '/local/data/course/project/groups/mango/project_final'
     '''
-### End cuffdiff plots
+### End Volcano plot
 
 
 if __name__ == "__main__":
@@ -475,19 +475,18 @@ if __name__ == "__main__":
     else:
         seqpath = workingDirectory + '/raw_fastq'
     
-    bSucceeded =  qualityControlInput(workingDirectory,new_filenames,seqpath)
-    if(not bSucceeded):
-        print(bSucceeded)
-        exit()
-  
-    subprocess.check_call(workingDirectory+'Cuff.sh ' + workingDirectory, shell = True)
-      
+    #bSucceeded =  qualityControlInput(workingDirectory,new_filenames,seqpath)
+    #if(not bSucceeded):
+    #    print(bSucceeded)
+    #    exit()
   
     bSucceeded = run_tophat2(workingDirectory)
     if(not bSucceeded):
         print(bSucceeded)
         exit()   
-       
+	
+    subprocess.check_call(workingDirectory+'Cuff.sh ' + workingDirectory, shell = True)    
+   
     bSucceeded = callCuffDiff(workingDirectory)
     if(not bSucceeded):
         print(bSucceeded)
