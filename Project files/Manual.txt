@@ -96,8 +96,12 @@ WORKING DIRECTORY AND CONTENTS
 				Accepted_hits.bam files and Intermediate files
 
 		  -cufflinks
+		  	-<condition><replicate>_<1|2>_clout
+				Transcripts, Isoforms and Genes files
 		  -cuffmerge
+			Assemblies "manifest", Assembled folder
 		  -cuffdiff
+			Various tracking files, Differential expression results
 
 =============================
 DETAILED DESCRIPTION PER PART
@@ -421,7 +425,7 @@ Contents:
 		-tophat
 		The results of the read mapping are stored here. For the different conditions and their replicates the results are stored into different folders of the 		layout:
 			-<condition[replicate]_thout>
-			This file contains a number of intermediate files produced during the mapping of the reads. The TopHat part of the pipeline first maps the kept 			paired reads from the quality control. Then it maps the remaining unpaired reads and uses the resulting output of both, to merge them in one 				bam file with samtools. This .bam file is then used for further downstream analysis. 
+			This folder contains a number of intermediate files produced during the mapping of the reads. The TopHat part of the pipeline first maps the kept 			paired reads from the quality control. Then it maps the remaining unpaired reads and uses the resulting output of both, to merge them in one 				.bam file with samtools. This .bam file is then used for further downstream analysis. 
 			Contents: accepted_hits_condition[replicate].bam -> The bam file resulting after the merge with samtools of the bam files produced after 									    	    mapping the paired and the unpaired reads.
 				   
 				  accepted_hits.bam -> The bam file produced from mapping the paired reads
@@ -437,11 +441,34 @@ Contents:
 				  prep_reads.info
 				 			
 
+		-cuffcompare
+		The results of cuffcompare are stored here. Detailed descriptions of the contents of the files can be found on 		http://cufflinks.cbcb.umd.edu/manual.html
+		Contents:cuffcmp.combined.gtf
+			cuffcmp.loci
+			cuffcmp_statistics.txt -> File containing a statistical overview for all replicates. 
+			cuffcmp.stats
+			cuffcmp.tracking
 		-cufflinks
+		Results of cufflinks can be found here per replicate.
+			-<condition><replicate>_clout
+				For a detailed description of each output file please visit http://cufflinks.cbcb.umd.edu/manual.html
+				transcripts.gtf
+				genes.fpkm_tracking
+				isoforms.fpkm_tracking
+				cuffcmp.transcripts.gtf.refmap
+				cuffcmp.transcripts.gtf.tmap
+				skipped.gtf
+				
 		
 		-cuffmerge
+		Results after merging the different assemblies are stored under this directory.
+			Contents: assemblies.txt -> A text file containing the names of the .gtf files to merge.
+				  <merged_asm>
+				  This directory contains the results of the assembly.  
 
 		-cuffdiff
+		Various results from the differential analysis using cuffdiff are stored here.
+		Contents: For a detailed description of each output file please visit http://cufflinks.cbcb.umd.edu/manual.html.
 			cds.diff				
 			promoters.diff			
 			splicing.diff			
